@@ -58,7 +58,8 @@ int main(){
     {Job::Guard, 0.2}
   };
 
-  AntSim antSim = AntSim(ideaJobProportions, 50, jobColors);
+  pair<int, int> dims = {WIDTH, HEIGHT};
+  AntSim antSim = AntSim(ideaJobProportions, 50, jobColors, dims);
   antSim.randomColony(1000);
 
   while(renderWindow.isOpen()){

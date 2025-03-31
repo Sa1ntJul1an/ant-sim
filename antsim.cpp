@@ -12,7 +12,9 @@
 #include <random>
 #include <iostream>
 
-AntSim::AntSim(std::map<Job, float> idealJobProportions, int antEncounterBufferSize, std::map<Job, sf::Color> jobColors) {
+AntSim::AntSim(std::map<Job, float> idealJobProportions, int antEncounterBufferSize, std::map<Job, sf::Color> jobColors, std::pair<int, int> dimensions) {
+  _spaceDimensions = dimensions;
+
   _idealJobProportions = idealJobProportions;
   _antEncounterBufferSize = antEncounterBufferSize;
   _jobColors = jobColors;

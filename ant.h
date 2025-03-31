@@ -14,13 +14,11 @@ class Ant{
 
     Ant(Job, int, std::map<Job, float>);
 
-    Ant(Ant&); 
-
     void setJob(const Job);
 
     const Job getJob();
 
-    void move(float);
+    void move(float, std::pair<int, int>);
 
     std::pair<float, float> getPosition();
 

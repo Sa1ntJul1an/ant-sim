@@ -35,12 +35,23 @@ const Job Ant::getJob() {
   return _job;
 }
 
-void Ant::move(float maxMoveDist) {
-  std::uniform_int_distribution<> dis(0.0f, maxMoveDist);
+void Ant::move(float maxMoveDist, std::pair<int, int> dimensions) {
+  std::uniform_int_distribution<> dis(-maxMoveDist, maxMoveDist);
   std::mt19937 gen(_rd());
+
+  float width = static_cast<float>(dimensions.first);
+  float height = static_cast<float>(dimensions.second);
   
-  float moveX = dis(gen);
-  float moveY = dis(gen);
+  float positionX = _position.first;
+  float positionY = _position.second;
+
+  float moveX;
+  float moveY;
+  
+  do {
+    moveX = dis(gen);
+    moveY = dis(gen);
+  } while(positionX - moveX < 0.0 || positionY - moveY < 0.0 || positionX + moveX > width || positionY + moveY > height);
   
   _position.first += moveX;
   _position.second += moveY;
