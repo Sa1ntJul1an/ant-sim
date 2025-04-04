@@ -32,7 +32,7 @@ class AntSim {
 
     std::pair<int, int> _spaceDimensions;
 
-    const float _maxMoveDist = 0.7;
+    const float _maxMoveDist = 1.8;
     const float _antSize = 1.0;
     
     sf::CircleShape _antCircle;

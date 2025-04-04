@@ -55,7 +55,6 @@ void AntSim::randomColony(int populationSize) {
     randomJobProportions[i] /= jobProportionsSum;
   }
 
-
   std::vector<Ant*> ant_buffer;
   int sumOfAnts = 0;
   for (int i = 0; i < static_cast<int>(Job::NUM_JOBS); i++) {
