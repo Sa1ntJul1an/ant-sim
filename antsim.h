@@ -20,6 +20,10 @@ class AntSim {
 
     void randomColony(int);
 
+    int getColonySize();
+
+    std::map<Job, float> getActualJobProportions();
+
     void update();
 
     void drawSim(sf::RenderWindow&);
@@ -38,6 +42,7 @@ class AntSim {
     std::vector<Ant*> _ants; 
 
     std::map<Job, float> _idealJobProportions;
+    std::map<Job, float> _actualJobProportions;
     int _antEncounterBufferSize;
 
     std::map<Job, sf::Color> _jobColors;

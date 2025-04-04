@@ -5,25 +5,33 @@
 
 #include "antsim.h"
 #include "jobs.h"
+#include "job_levels_display.h"
 
 using namespace sf;
 using namespace std;
 
-// width in height, in grid cells
+// width in height
 const int WIDTH = 1900;
 const int HEIGHT = 1000;
+
+const int JOBBARWINDOW_HEIGHT = 600;
+const int JOBBARWINDOW_WIDTH = 400;
 
 int main(){
 
   Vector2i mousePosition;
 
-  // RENDER WINDOW
+  // RENDER WINDOWS
   // =========================================================
   RenderWindow renderWindow(VideoMode(WIDTH, HEIGHT), "Ant Sim");
   renderWindow.setFramerateLimit(60);
+  
+  RenderWindow jobBarWindow(VideoMode(JOBBARWINDOW_WIDTH, JOBBARWINDOW_HEIGHT), "Job Levels");
+  jobBarWindow.setFramerateLimit(60);
   // =========================================================
 
   Event renderWindowEvent;
+  Event jobBarWindowEvent;
 
   Font font;
   FileInputStream fontIn;
@@ -63,8 +71,13 @@ int main(){
   AntSim antSim = AntSim(ideaJobProportions, 50, jobColors, dims);
   antSim.randomColony(10000);
 
-  while(renderWindow.isOpen()){
+  int colony_size = antSim.getColonySize();
+
+  JobLevelsDisplay jobLevelsDisplay = JobLevelsDisplay(colony_size, ideaJobProportions, jobColors, JOBBARWINDOW_WIDTH, JOBBARWINDOW_HEIGHT, font);
+
+  while(renderWindow.isOpen()) {
     renderWindow.clear();
+    jobBarWindow.clear(Color(30, 30, 30));
 
     mousePosition = Mouse::getPosition(renderWindow);
 
@@ -79,6 +92,8 @@ int main(){
     antSim.drawSim(renderWindow);
     // =========================================================
 
+    jobLevelsDisplay.drawDisplay(jobBarWindow, antSim.getActualJobProportions()); 
+
     // KEYBOARD EVENTS =========================================
     if (Keyboard::isKeyPressed(Keyboard::Space) && !spacebar_held){   // space to pause / unpause
       sim_running = !sim_running;
@@ -91,9 +106,16 @@ int main(){
 
     // CLOSE WINDOWS IF X PRESSED
     // =========================================================
-    while(renderWindow.pollEvent(renderWindowEvent)){
-      if(renderWindowEvent.type == Event::Closed){
+    while(renderWindow.pollEvent(renderWindowEvent)) {
+      if(renderWindowEvent.type == Event::Closed) {
         renderWindow.close();
+        jobBarWindow.close();
+      }
+    }
+    while(jobBarWindow.pollEvent(jobBarWindowEvent)) {
+      if (jobBarWindowEvent.type == Event::Closed) {
+        renderWindow.close();
+        jobBarWindow.close();
       }
     }
     // =========================================================
@@ -101,6 +123,7 @@ int main(){
     renderWindow.draw(iterationText);
 
     renderWindow.display();
+    jobBarWindow.display();
   }
     
 
