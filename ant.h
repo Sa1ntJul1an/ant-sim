@@ -22,6 +22,8 @@ class Ant{
 
     std::pair<float, float> getPosition();
 
+    void setPosition(std::pair<float, float>);
+
     void encounterAnt(Ant);
 
     void evaluateEncountersAndSwitch();

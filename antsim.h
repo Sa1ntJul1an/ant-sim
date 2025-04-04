@@ -25,7 +25,10 @@ class AntSim {
     void drawSim(sf::RenderWindow&);
 
   private:
-    void evaluateAntEncounters();
+    void _evaluateAntEncounters();
+    float _distanceBetweenAnts(Ant*, Ant*);
+
+    std::random_device _rd;
 
     std::pair<int, int> _spaceDimensions;
 

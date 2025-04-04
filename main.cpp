@@ -39,8 +39,9 @@ int main(){
   int iteration = 0;
   
   bool mouse_held = false;
-  bool sim_running = false;
   bool spacebar_held = false;
+
+  bool sim_running = false;
 
   const map<Job, Color> jobColors = {
     {Job::Guard, Color::Red},
@@ -60,7 +61,7 @@ int main(){
 
   pair<int, int> dims = {WIDTH, HEIGHT};
   AntSim antSim = AntSim(ideaJobProportions, 50, jobColors, dims);
-  antSim.randomColony(1000);
+  antSim.randomColony(10000);
 
   while(renderWindow.isOpen()){
     renderWindow.clear();

@@ -69,6 +69,10 @@ void Ant::encounterAnt(Ant encountered_ant) {
   }
 }
 
+void Ant::setPosition(std::pair<float, float> position) {
+  _position = position;
+}
+
 void Ant::evaluateEncountersAndSwitch() {
   if (_encounteredJobs.size() < _jobBufferSize) {
     return;                                               // we have not encountered enough ants to switch job
@@ -83,6 +87,4 @@ void Ant::evaluateEncountersAndSwitch() {
   for (std::pair<Job, int> jobCountPair : jobCounts) {
     encounteredProportion[jobCountPair.first] = static_cast<float>(jobCountPair.second) / _jobBufferSize;
   }
-
-  
 }
