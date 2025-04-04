@@ -28,8 +28,6 @@ class AntSim {
     void _evaluateAntEncounters();
     float _distanceBetweenAnts(Ant*, Ant*);
 
-    std::random_device _rd;
-
     std::pair<int, int> _spaceDimensions;
 
     const float _maxMoveDist = 1.8;
@@ -45,6 +43,9 @@ class AntSim {
     std::map<Job, sf::Color> _jobColors;
 
     int _population;
+    
+    static std::random_device rd;
+    static std::mt19937 gen;
 };
 
 #endif // ANTSIM_H

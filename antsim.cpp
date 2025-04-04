@@ -37,7 +37,6 @@ void AntSim::addColony(std::vector<Ant*> ants) {
 void AntSim::randomColony(int populationSize) {
   _population = populationSize;
 
-  std::mt19937_64 gen(_rd());
   std::uniform_int_distribution<> dis(0.0f, 1000.0f);
 
   std::vector<float> randomJobProportions;
@@ -79,7 +78,6 @@ void AntSim::randomColony(int populationSize) {
   
   std::cout << "Placing ants in environment...\n";
   for (Ant* ant : ant_buffer) {  // place ants down randomly in state space
-    std::mt19937_64 gen(_rd());
     
     std::uniform_int_distribution<> x_dist(0.0f, _spaceDimensions.first);
     std::uniform_int_distribution<> y_dist(0.0f, _spaceDimensions.second);
@@ -161,3 +159,7 @@ float AntSim::_distanceBetweenAnts(Ant* ant1, Ant* ant2) {
   
   return sqrt(pow(delta_x, 2) + pow(delta_y, 2));
 }
+
+
+std::random_device AntSim::rd;
+std::mt19937 AntSim::gen(AntSim::rd());

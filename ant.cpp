@@ -1,7 +1,6 @@
 #include "ant.h"
 
 #include <cmath>
-#include <iostream>
 #include <map>
 #include <random>
 
