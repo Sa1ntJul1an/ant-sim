@@ -13,11 +13,14 @@
 #include <random>
 #include <iostream>
 
-AntSim::AntSim(std::map<Job, float> idealJobProportions, int antEncounterBufferSize, std::map<Job, sf::Color> jobColors, std::pair<int, int> dimensions) {
+AntSim::AntSim(std::map<Job, float> idealJobProportions, int antEncounterBufferSize, float antInteractionDist, std::map<Job, sf::Color> jobColors, std::pair<int, int> dimensions) {
   _spaceDimensions = dimensions;
 
   _idealJobProportions = idealJobProportions;
   _antEncounterBufferSize = antEncounterBufferSize;
+  
+  _antInteractionDist = antInteractionDist;
+
   _jobColors = jobColors;
 
  _antCircle.setRadius(_antSize); 
@@ -68,7 +71,8 @@ void AntSim::randomColony(int populationSize) {
       antsWithjob = std::round(populationSize * randomProportion);
       sumOfAnts += antsWithjob;
     }
-    std::cout << "Ants with job " << i << " : " << antsWithjob << std::endl;
+
+    std::cout << "Ants with job " << getJobName(job) << " : " << antsWithjob << std::endl;
 
     for (int antIndex = 0; antIndex < antsWithjob; antIndex++) {
       Ant* ant = new Ant(job, _antEncounterBufferSize, _idealJobProportions);
@@ -107,14 +111,13 @@ void AntSim::randomColony(int populationSize) {
         }
 
         if (_distanceBetweenAnts(ant, other_ant) < _antSize) {
-          std::cout << "ants colliding. Distance" << _distanceBetweenAnts(ant, other_ant) << "\n";
           colliding = true;
         }
       }
       
       if (current_attempt > max_attempts) {
         attempts_exceeded = true;
-        std::cout << "Exceeded max retries when attempting to find a place to spawn ant. Colony size may be too great for environment size.\n";
+        std::cout << "Exceeded max retries when attempting to find a place to spawn ant. Colony size may be too great for environment.\n";
       }
 
     } while(colliding);
@@ -128,9 +131,27 @@ void AntSim::randomColony(int populationSize) {
   std::cout << "Ant colony created.  Population size: " << _ants.size() << std::endl;
 }
 
+int AntSim::getColonySize() {
+  return _ants.size();
+}
+
+std::map<Job, float> AntSim::getActualJobProportions() {
+  return _actualJobProportions; 
+}
+
 void AntSim::update() {
+  std::map<Job, int> antsWithJob;
+
   for (Ant* ant : _ants) {
     ant->move(_maxMoveDist, _spaceDimensions);
+    antsWithJob[ant->getJob()]++;
+  }
+
+  /*_evaluateAntEncounters();*/
+
+  for (int i = 0; i < static_cast<int>(Job::NUM_JOBS); i++) {
+    Job job = static_cast<Job>(i);
+    _actualJobProportions[job] = static_cast<float>(antsWithJob[job]) / _ants.size();
   }
 }
 
@@ -143,6 +164,20 @@ void AntSim::drawSim(sf::RenderWindow& renderWindow) {
     _antCircle.setFillColor(_jobColors[job]);
 
     renderWindow.draw(_antCircle);
+  }
+}
+
+void AntSim::_evaluateAntEncounters() {
+  for (Ant* ant1 : _ants) {
+    for (Ant* ant2 : _ants) {
+      if (ant1 == ant2) {
+        continue;
+      }
+      if (_distanceBetweenAnts(ant1, ant2) < _antInteractionDist) {
+        ant1->encounterAnt(ant2);
+        ant2->encounterAnt(ant1);
+      }
+    }
   }
 }
 

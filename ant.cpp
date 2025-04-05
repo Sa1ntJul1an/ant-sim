@@ -77,8 +77,8 @@ std::pair<float, float> Ant::getPosition() {
   return _position;
 }
 
-void Ant::encounterAnt(Ant encountered_ant) {
-  _encounteredJobs.push_back(encountered_ant.getJob());
+void Ant::encounterAnt(Ant* encountered_ant) {
+  _encounteredJobs.push_back(encountered_ant->getJob());
 
   if (_encounteredJobs.size() > _jobBufferSize) {
     _encounteredJobs.erase(_encounteredJobs.begin());     // ensure that encountered ants buffer doesn't exceed max size

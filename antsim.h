@@ -12,13 +12,17 @@
 
 class AntSim {
   public:
-    AntSim(std::map<Job, float>, int, std::map<Job, sf::Color>, std::pair<int, int>);
+    AntSim(std::map<Job, float>, int, float, std::map<Job, sf::Color>, std::pair<int, int>);
 
     ~AntSim();
     
     void addColony(std::vector<Ant*>);
 
     void randomColony(int);
+
+    int getColonySize();
+
+    std::map<Job, float> getActualJobProportions();
 
     void update();
 
@@ -31,13 +35,16 @@ class AntSim {
     std::pair<int, int> _spaceDimensions;
 
     const float _maxMoveDist = 1.8;
-    const float _antSize = 1.0;
+    const float _antSize = 1.8;
+
+    float _antInteractionDist;
     
     sf::CircleShape _antCircle;
 
     std::vector<Ant*> _ants; 
 
     std::map<Job, float> _idealJobProportions;
+    std::map<Job, float> _actualJobProportions;
     int _antEncounterBufferSize;
 
     std::map<Job, sf::Color> _jobColors;
