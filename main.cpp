@@ -17,6 +17,9 @@ const int HEIGHT = 1000;
 const int JOBBARWINDOW_HEIGHT = 600;
 const int JOBBARWINDOW_WIDTH = 400;
 
+const float ANT_INTERACTION_DISTANCE = 3.0;
+const int ANT_ENCOUNTER_BUFFER_SIZE = 50;
+
 int main(){
 
   Vector2i mousePosition;
@@ -68,7 +71,7 @@ int main(){
   };
 
   pair<int, int> dims = {WIDTH, HEIGHT};
-  AntSim antSim = AntSim(ideaJobProportions, 50, jobColors, dims);
+  AntSim antSim = AntSim(ideaJobProportions, ANT_ENCOUNTER_BUFFER_SIZE, ANT_INTERACTION_DISTANCE, jobColors, dims);
   antSim.randomColony(10000);
 
   int colony_size = antSim.getColonySize();

@@ -13,11 +13,14 @@
 #include <random>
 #include <iostream>
 
-AntSim::AntSim(std::map<Job, float> idealJobProportions, int antEncounterBufferSize, std::map<Job, sf::Color> jobColors, std::pair<int, int> dimensions) {
+AntSim::AntSim(std::map<Job, float> idealJobProportions, int antEncounterBufferSize, float antInteractionDist, std::map<Job, sf::Color> jobColors, std::pair<int, int> dimensions) {
   _spaceDimensions = dimensions;
 
   _idealJobProportions = idealJobProportions;
   _antEncounterBufferSize = antEncounterBufferSize;
+  
+  _antInteractionDist = antInteractionDist;
+
   _jobColors = jobColors;
 
  _antCircle.setRadius(_antSize); 
@@ -144,6 +147,8 @@ void AntSim::update() {
     antsWithJob[ant->getJob()]++;
   }
 
+  /*_evaluateAntEncounters();*/
+
   for (int i = 0; i < static_cast<int>(Job::NUM_JOBS); i++) {
     Job job = static_cast<Job>(i);
     _actualJobProportions[job] = static_cast<float>(antsWithJob[job]) / _ants.size();
@@ -159,6 +164,20 @@ void AntSim::drawSim(sf::RenderWindow& renderWindow) {
     _antCircle.setFillColor(_jobColors[job]);
 
     renderWindow.draw(_antCircle);
+  }
+}
+
+void AntSim::_evaluateAntEncounters() {
+  for (Ant* ant1 : _ants) {
+    for (Ant* ant2 : _ants) {
+      if (ant1 == ant2) {
+        continue;
+      }
+      if (_distanceBetweenAnts(ant1, ant2) < _antInteractionDist) {
+        ant1->encounterAnt(ant2);
+        ant2->encounterAnt(ant1);
+      }
+    }
   }
 }
 

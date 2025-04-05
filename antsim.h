@@ -12,7 +12,7 @@
 
 class AntSim {
   public:
-    AntSim(std::map<Job, float>, int, std::map<Job, sf::Color>, std::pair<int, int>);
+    AntSim(std::map<Job, float>, int, float, std::map<Job, sf::Color>, std::pair<int, int>);
 
     ~AntSim();
     
@@ -35,7 +35,9 @@ class AntSim {
     std::pair<int, int> _spaceDimensions;
 
     const float _maxMoveDist = 1.8;
-    const float _antSize = 1.0;
+    const float _antSize = 1.8;
+
+    float _antInteractionDist;
     
     sf::CircleShape _antCircle;
 
