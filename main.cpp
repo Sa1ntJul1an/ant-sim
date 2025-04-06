@@ -2,6 +2,8 @@
 #include <SFML/Graphics/Color.hpp>
 #include <SFML/System/Vector2.hpp>
 #include <SFML/Window/Keyboard.hpp>
+#include <iostream>
+#include <random>
 
 #include "antsim.h"
 #include "jobs.h"
@@ -21,6 +23,19 @@ const float ANT_INTERACTION_DISTANCE = 3.0;
 const int ANT_ENCOUNTER_BUFFER_SIZE = 30;
 
 const float GRID_CELL_SPACING = ANT_INTERACTION_DISTANCE;
+
+const float ANT_SPAWNING_RADIUS = 35.0;
+
+
+pair<float, float> polarToCartesian(float radius, float angleDeg) {
+  float angleRad = angleDeg * M_PI / 180.0;
+  
+  float x = radius * cos(angleRad);
+  float y = radius * sin(angleRad);
+
+  return {x, y};
+}
+
 
 int main(){
 
@@ -74,7 +89,15 @@ int main(){
 
   pair<int, int> dims = {WIDTH, HEIGHT};
   AntSim antSim = AntSim(ideaJobProportions, ANT_ENCOUNTER_BUFFER_SIZE, ANT_INTERACTION_DISTANCE, GRID_CELL_SPACING, jobColors, dims);
-  antSim.randomColony(10000);
+  /*antSim.randomColony(10000);*/
+
+  std::random_device rd;
+  std::mt19937 gen(rd());
+
+  std::uniform_real_distribution<float> angleDist(0.0f, 360.0f);
+  std::uniform_real_distribution<float> radiusDist(0.0f, ANT_SPAWNING_RADIUS);
+
+  Job antJob = Job::Guard;
 
   int colony_size = antSim.getColonySize();
 
@@ -98,6 +121,24 @@ int main(){
     // =========================================================
 
     jobLevelsDisplay.drawDisplay(jobBarWindow, antSim.getColonySize(), antSim.getActualJobQuantities()); 
+
+    // MOUSE INTERACTION ======================================
+    if (Mouse::isButtonPressed(Mouse::Left)) {
+      if (!sim_running) {
+        // spawn ants 
+        float angleDeg = angleDist(gen);
+        float radius = radiusDist(gen);
+
+        std::pair<float, float> cartesianCoords = polarToCartesian(radius, angleDeg);
+        
+        Ant* ant = new Ant(antJob, ANT_ENCOUNTER_BUFFER_SIZE, ideaJobProportions);
+        ant->setJob(antJob);
+        ant->setPosition({mousePosition.x + cartesianCoords.first, mousePosition.y + cartesianCoords.second});
+      
+        antSim.addAnt(ant);
+      }
+    }
+    // ========================================================
 
     // KEYBOARD EVENTS =========================================
     if (Keyboard::isKeyPressed(Keyboard::Space) && !spacebar_held){   // space to pause / unpause
@@ -130,9 +171,5 @@ int main(){
     renderWindow.display();
     jobBarWindow.display();
   }
-    
-
-  // TODO: progress rectangles for each job that fill up to the ideal proportion 
-
   return 0;
 }

@@ -16,6 +16,8 @@ class AntSim {
 
     ~AntSim();
     
+    void addAnt(Ant*);   
+  
     void randomColony(int);
 
     int getColonySize();

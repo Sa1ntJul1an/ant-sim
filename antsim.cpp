@@ -38,6 +38,27 @@ AntSim::~AntSim() {
   }
 }
 
+void AntSim::addAnt(Ant* newAnt) {
+  std::pair<float, float> antPos = newAnt->getPosition();
+  if (antPos.first < 0 || antPos.first > _spaceDimensions.first) {
+    return;
+  }
+  if (antPos.second < 0 || antPos.second > _spaceDimensions.second) {
+    return;
+  }
+
+  std::pair<int, int> gridKey = {static_cast<int>(antPos.first / _gridCellSize), static_cast<int>(antPos.second / _gridCellSize)};
+
+  for (Ant* ant : _partitionedAnts[gridKey]) {
+    if (_distanceBetweenAnts(newAnt, ant) < _antSize) {
+      return;
+    }
+  }
+
+  _partitionedAnts[gridKey].push_back(newAnt);
+  _allAnts.push_back(newAnt);
+}
+
 void AntSim::randomColony(int populationSize) {
   _population = populationSize;
 
