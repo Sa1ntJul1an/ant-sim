@@ -6,6 +6,7 @@
 #include <SFML/Graphics/Font.hpp>
 #include <SFML/Graphics/RenderWindow.hpp>
 #include <SFML/System/Vector2.hpp>
+#include <string>
 
 
 JobLevelsDisplay::JobLevelsDisplay(int colonySize, std::map<Job, float> idealJobProportions, std::map<Job, sf::Color> jobColors, int windowWidth, int windowHeight, sf::Font& font) : _font(font) {
@@ -30,16 +31,15 @@ JobLevelsDisplay::JobLevelsDisplay(int colonySize, std::map<Job, float> idealJob
   _barRectangle.setSize(sf::Vector2f(_barRectangleWidth, _windowHeight - _barVerticalPadding)); 
 }
 
-void JobLevelsDisplay::drawDisplay(sf::RenderWindow& window, std::map<Job, float> actualJobLevels) {
+void JobLevelsDisplay::drawDisplay(sf::RenderWindow& window, int colonySize, std::map<Job, int> actualJobQuantites) {
   float sectionWidth = _windowWidth / static_cast<float>(_numJobs);
 
   for (int i = 0; i < _numJobs; i++) {
     Job job = static_cast<Job>(i);
     std::string jobName = getJobName(job);
 
-    float jobLevel = actualJobLevels[job];
     float idealJobLevel = _idealJobLevels[job];
-    float actualJobLevel = actualJobLevels[job];
+    float actualJobLevel = static_cast<float>(actualJobQuantites[job]) / colonySize;
     
     float x_center = 0.5 * sectionWidth + sectionWidth * static_cast<float>(i);
     
@@ -53,7 +53,8 @@ void JobLevelsDisplay::drawDisplay(sf::RenderWindow& window, std::map<Job, float
 
     _barBackgroundRectangle.setPosition(sf::Vector2f(x_center - _barBackgroundRectangleWidth / 2.0, _barVerticalPadding));
 
-    _jobNameText.setString(jobName);
+    /*_jobNameText.setString(jobName);*/
+    _jobNameText.setString(std::to_string(actualJobQuantites[job]));
     _jobNameText.setOrigin(_jobNameText.getLocalBounds().width / 2.0, 0.0);
     _jobNameText.setPosition(sf::Vector2f(x_center, _barBackgroundRectangle.getSize().y + _barVerticalPadding + 10.0));
 

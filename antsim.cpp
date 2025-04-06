@@ -9,11 +9,12 @@
 #include <cmath>
 #include <math.h>
 #include <map>
+#include <utility>
 #include <vector>
 #include <random>
 #include <iostream>
 
-AntSim::AntSim(std::map<Job, float> idealJobProportions, int antEncounterBufferSize, float antInteractionDist, std::map<Job, sf::Color> jobColors, std::pair<int, int> dimensions) {
+AntSim::AntSim(std::map<Job, float> idealJobProportions, int antEncounterBufferSize, float antInteractionDist, float gridCellSize, std::map<Job, sf::Color> jobColors, std::pair<int, int> dimensions) {
   _spaceDimensions = dimensions;
 
   _idealJobProportions = idealJobProportions;
@@ -21,21 +22,25 @@ AntSim::AntSim(std::map<Job, float> idealJobProportions, int antEncounterBufferS
   
   _antInteractionDist = antInteractionDist;
 
+  _gridCellSize = gridCellSize;
+  _gridCellsX = _spaceDimensions.first / _gridCellSize;
+  _gridCellsY = _spaceDimensions.second / _gridCellSize;
+
   _jobColors = jobColors;
 
- _antCircle.setRadius(_antSize); 
+  _antCircle.setRadius(_antSize); 
 }
 
 AntSim::~AntSim() {
-  for (Ant* ant : _ants) {
+  for (Ant* ant : _allAnts) {
     delete ant;
   }
 }
 
-void AntSim::addColony(std::vector<Ant*> ants) {
-  _ants = ants;
-  _population = _ants.size();
-}
+/*void AntSim::addColony(std::vector<Ant*> ants) {*/
+/*  _ants = ants;*/
+/*  _population = _ants.size();*/
+/*}*/
 
 void AntSim::randomColony(int populationSize) {
   _population = populationSize;
@@ -101,17 +106,23 @@ void AntSim::randomColony(int populationSize) {
       ant_pos.first = x_dist(gen);
       ant_pos.second = y_dist(gen);
 
-      if (_ants.size() <= 1) {
+      ant->setPosition(ant_pos);
+
+      if (_allAnts.size() == 0) {
         break;
       }
 
-      for (Ant* other_ant : _ants) {
-        if (other_ant == ant) {
-          continue;
-        }
+      std::vector<std::vector<Ant*>> surroundingAnts = _getSurroundingAnts(ant);
 
-        if (_distanceBetweenAnts(ant, other_ant) < _antSize) {
-          colliding = true;
+      for (std::vector<Ant*> ants : surroundingAnts) {
+        for (Ant* other_ant : ants) {
+          if (other_ant == ant) {
+            continue;
+          }
+
+          if (_distanceBetweenAnts(ant, other_ant) < _antSize) {
+            colliding = true;
+          }
         }
       }
       
@@ -122,41 +133,39 @@ void AntSim::randomColony(int populationSize) {
 
     } while(colliding);
     
-    ant->setPosition(ant_pos);
-    
     if (!attempts_exceeded) {
-      _ants.push_back(ant);
+      _storeAnt(ant);
+      _allAnts.push_back(ant);
     }
   }
-  std::cout << "Ant colony created.  Population size: " << _ants.size() << std::endl;
+  std::cout << "Ant colony created.  Population size: " << _allAnts.size() << std::endl;
 }
 
 int AntSim::getColonySize() {
-  return _ants.size();
+  return _allAnts.size();
 }
 
-std::map<Job, float> AntSim::getActualJobProportions() {
-  return _actualJobProportions; 
+std::map<Job, int> AntSim::getActualJobQuantities() {
+  return _actualJobQuantities; 
 }
 
 void AntSim::update() {
   std::map<Job, int> antsWithJob;
-
-  for (Ant* ant : _ants) {
+  for (Ant* ant : _allAnts) {
     ant->move(_maxMoveDist, _spaceDimensions);
     antsWithJob[ant->getJob()]++;
   }
 
-  /*_evaluateAntEncounters();*/
+  _evaluateAntEncounters();
 
   for (int i = 0; i < static_cast<int>(Job::NUM_JOBS); i++) {
     Job job = static_cast<Job>(i);
-    _actualJobProportions[job] = static_cast<float>(antsWithJob[job]) / _ants.size();
+    _actualJobQuantities[job] = antsWithJob[job];
   }
 }
 
 void AntSim::drawSim(sf::RenderWindow& renderWindow) {
-  for (Ant* ant : _ants) {
+  for (Ant* ant : _allAnts) {
     std::pair<float, float> antPosition = ant->getPosition();
     Job job = ant->getJob();
 
@@ -168,14 +177,21 @@ void AntSim::drawSim(sf::RenderWindow& renderWindow) {
 }
 
 void AntSim::_evaluateAntEncounters() {
-  for (Ant* ant1 : _ants) {
-    for (Ant* ant2 : _ants) {
-      if (ant1 == ant2) {
-        continue;
-      }
-      if (_distanceBetweenAnts(ant1, ant2) < _antInteractionDist) {
-        ant1->encounterAnt(ant2);
-        ant2->encounterAnt(ant1);
+  // for each ant 
+  for (Ant* ant1 : _allAnts) {
+    // get vectors of neighboring ants
+    std::vector<std::vector<Ant*>> surroundingAnts = _getSurroundingAnts(ant1);
+    // for each vector of ants in neighboring grid cells
+    for (std::vector<Ant*> antsInGridCell : surroundingAnts) {
+      // for each surrounding ant, check for encounter
+      for (Ant* ant2 : antsInGridCell) {
+        if (ant1 == ant2) {
+          continue;
+        }
+        if (_distanceBetweenAnts(ant1, ant2) < _antInteractionDist) {
+          ant1->encounterAnt(ant2);
+          ant2->encounterAnt(ant1);
+        }
       }
     }
   }
@@ -193,6 +209,69 @@ float AntSim::_distanceBetweenAnts(Ant* ant1, Ant* ant2) {
   float delta_y = abs(ant1_pos.second - ant2_pos.second);
   
   return sqrt(pow(delta_x, 2) + pow(delta_y, 2));
+}
+
+void AntSim::_storeAnt(Ant* ant, std::pair<float, float> previous_position) {   // used to store an ant that has moved (has a previous position)
+  int grid_location_x = ant->getPosition().first / _gridCellSize;
+  int grid_location_y = ant->getPosition().second / _gridCellSize;
+  
+  int prev_grid_location_x = previous_position.first / _gridCellSize;
+  int prev_grid_location_y = previous_position.second / _gridCellSize;
+
+  // generate key based on ants location
+  std::pair<int, int> grid_key = {grid_location_x, grid_location_y};
+  
+  // if ant has changed grid cells, we need to move it to a different vector of ants
+  if (grid_location_x != prev_grid_location_x || grid_location_y != prev_grid_location_y) {
+    // add it to vector of ants at correct grid cell
+    _partitionedAnts[grid_key].push_back(ant);
+    
+    // grid key for ants previous position to delete it from previous vector of ants
+    grid_key = {prev_grid_location_x, prev_grid_location_y};
+
+    // we need to ensure the last ant is the one we want to delete so that we can easily remove it very efficiently
+    if (_partitionedAnts[grid_key].back() != ant) {
+      for (auto it = _partitionedAnts[grid_key].begin(); it != _partitionedAnts[grid_key].end(); ++it) {
+        if (*it != nullptr && *it == ant) {
+          std::swap(*it, _partitionedAnts[grid_key].back());
+        }
+      }
+    }
+    _partitionedAnts[grid_key].pop_back();
+  }
+}
+
+void AntSim::_storeAnt(Ant* ant) {  // used to store a new ant that has not been added to the colony yet
+  int grid_location_x = ant->getPosition().first / _gridCellSize;
+  int grid_location_y = ant->getPosition().second / _gridCellSize;
+
+  // generate key based on ants location
+  std::pair<int, int> grid_key = {grid_location_x, grid_location_y};
+  
+  // add it to vector of ants at correct grid cell
+  _partitionedAnts[grid_key].push_back(ant);
+}
+
+std::vector<std::vector<Ant*>> AntSim::_getSurroundingAnts(Ant* ant) {
+  int cell_x = static_cast<int>(ant->getPosition().first / _gridCellSize);
+  int cell_y = static_cast<int>(ant->getPosition().second / _gridCellSize);
+
+  std::pair<int, int> gridKey;
+  std::vector<std::vector<Ant*>> ants;
+
+  for (int x_offset = -1; x_offset <= 1; x_offset++) {
+    if (x_offset < 0 || x_offset > _gridCellsX - 1) {
+      continue;
+    }
+    for (int y_offset = -1; y_offset <= 1; y_offset++) {
+      if (y_offset < 0 || y_offset > _gridCellsY - 1) {
+        continue;
+      }
+      gridKey = {cell_x, cell_y};
+      ants.push_back(_partitionedAnts[gridKey]);
+    }
+  }
+  return ants;
 }
 
 

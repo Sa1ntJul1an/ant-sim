@@ -12,7 +12,7 @@
 
 class AntSim {
   public:
-    AntSim(std::map<Job, float>, int, float, std::map<Job, sf::Color>, std::pair<int, int>);
+    AntSim(std::map<Job, float>, int, float, float, std::map<Job, sf::Color>, std::pair<int, int>);
 
     ~AntSim();
     
@@ -22,15 +22,19 @@ class AntSim {
 
     int getColonySize();
 
-    std::map<Job, float> getActualJobProportions();
+    std::map<Job, int> getActualJobQuantities();
 
     void update();
 
     void drawSim(sf::RenderWindow&);
 
   private:
+    void _moveAnts();
     void _evaluateAntEncounters();
     float _distanceBetweenAnts(Ant*, Ant*);
+    void _storeAnt(Ant*, std::pair<float, float>);
+    void _storeAnt(Ant*);
+    std::vector<std::vector<Ant*>> _getSurroundingAnts(Ant*);
 
     std::pair<int, int> _spaceDimensions;
 
@@ -38,13 +42,18 @@ class AntSim {
     const float _antSize = 1.8;
 
     float _antInteractionDist;
-    
+
+    float _gridCellSize;
+    int _gridCellsX;
+    int _gridCellsY;
+
     sf::CircleShape _antCircle;
 
-    std::vector<Ant*> _ants; 
+    std::vector<Ant*> _allAnts;
+    std::map<std::pair<int, int>, std::vector<Ant*>> _partitionedAnts;
 
     std::map<Job, float> _idealJobProportions;
-    std::map<Job, float> _actualJobProportions;
+    std::map<Job, int> _actualJobQuantities;
     int _antEncounterBufferSize;
 
     std::map<Job, sf::Color> _jobColors;

@@ -60,14 +60,14 @@ void Ant::move(float maxMoveDist, std::pair<int, int> dimensions) {
     move_dist_y_upper_limit = height- positionY;
   }
 
-  std::uniform_int_distribution<> move_distribution_x(std::round(-move_dist_x_lower_limit * 10), std::round(move_dist_x_upper_limit * 10));
-  std::uniform_int_distribution<> move_distribution_y(std::round(-move_dist_y_lower_limit * 10), std::round(move_dist_y_upper_limit * 10));
+  std::uniform_real_distribution<> move_distribution_x(-move_dist_x_lower_limit, move_dist_x_upper_limit);
+  std::uniform_real_distribution<> move_distribution_y(-move_dist_y_lower_limit, move_dist_y_upper_limit);
   
   float moveX;
   float moveY;
   
-  moveX = static_cast<float>(move_distribution_x(gen) / 10.0);
-  moveY = static_cast<float>(move_distribution_y(gen) / 10.0);
+  moveX = move_distribution_x(gen);
+  moveY = move_distribution_y(gen);
 
   _position.first += moveX;
   _position.second += moveY;
@@ -99,10 +99,22 @@ void Ant::evaluateEncountersAndSwitch() {
     jobCounts[job] ++;
   }
 
-  std::map<Job, float> encounteredProportion;
+  std::map<Job, float> encounteredProportions;
   for (std::pair<Job, int> jobCountPair : jobCounts) {
-    encounteredProportion[jobCountPair.first] = static_cast<float>(jobCountPair.second) / _jobBufferSize;
+    encounteredProportions[jobCountPair.first] = static_cast<float>(jobCountPair.second) / _jobBufferSize;
   }
+
+  std::vector<Job> potentialJobs;
+  for (std::pair<Job, float> encounteredProportion : encounteredProportions) {                  // - for each Job and encountered proportion
+    if (encounteredProportion.second < _desiredJobProportions[encounteredProportion.first]) {       // - if encountered proportion less than desired proportion
+      potentialJobs.push_back(encounteredProportion.first);                                             // - add Job to list of jobs that ant may switch to 
+    }
+  }
+
+  std::uniform_int_distribution<> dis(0, potentialJobs.size() - 1);
+  
+  // choose random job from list of potential jobs
+  _job = potentialJobs[dis(gen)];
 }
 
 
