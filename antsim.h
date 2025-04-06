@@ -38,7 +38,7 @@ class AntSim {
 
     std::pair<int, int> _spaceDimensions;
 
-    const float _maxMoveDist = 1.8;
+    const float _maxMoveDist = 2.8;
     const float _antSize = 1.8;
 
     float _antInteractionDist;

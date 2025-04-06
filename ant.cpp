@@ -104,17 +104,32 @@ void Ant::evaluateEncountersAndSwitch() {
     encounteredProportions[jobCountPair.first] = static_cast<float>(jobCountPair.second) / _jobBufferSize;
   }
 
-  std::vector<Job> potentialJobs;
+  std::vector<Job> underRepresentedJobs;
+  std::vector<Job> overRepresentedJobs;
   for (std::pair<Job, float> encounteredProportion : encounteredProportions) {                  // - for each Job and encountered proportion
-    if (encounteredProportion.second < _desiredJobProportions[encounteredProportion.first]) {       // - if encountered proportion less than desired proportion
-      potentialJobs.push_back(encounteredProportion.first);                                             // - add Job to list of jobs that ant may switch to 
+    Job job = encounteredProportion.first;
+    float jobProportion = encounteredProportion.second;
+    if (jobProportion < _desiredJobProportions[job]) {       // - if encountered proportion less than desired proportion
+      underRepresentedJobs.push_back(job);                                             // - add Job to list of jobs that ant may switch to 
+    } else {
+      overRepresentedJobs.push_back(job);
     }
   }
 
-  std::uniform_int_distribution<> dis(0, potentialJobs.size() - 1);
+  std::uniform_int_distribution<> dis(0, underRepresentedJobs.size() - 1);
   
+  bool antInOverRepresentedJob = false;
+  for (Job job : overRepresentedJobs) {
+    if (_job == job) {
+      antInOverRepresentedJob = true;
+      break;
+    }
+  }
+
   // choose random job from list of potential jobs
-  _job = potentialJobs[dis(gen)];
+  if (antInOverRepresentedJob && !underRepresentedJobs.empty()) {   // if ant detects that it is in an over represented job, and there are potential jobs to switch to 
+    _job = underRepresentedJobs[dis(gen)];
+  }
 }
 
 

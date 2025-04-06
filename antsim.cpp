@@ -150,13 +150,16 @@ std::map<Job, int> AntSim::getActualJobQuantities() {
 }
 
 void AntSim::update() {
+  _evaluateAntEncounters();
+  
   std::map<Job, int> antsWithJob;
   for (Ant* ant : _allAnts) {
+    // run function for each ant to evaluate how many of each job it has encountered and switch accordingly
+    ant->evaluateEncountersAndSwitch();
+
     ant->move(_maxMoveDist, _spaceDimensions);
     antsWithJob[ant->getJob()]++;
   }
-
-  _evaluateAntEncounters();
 
   for (int i = 0; i < static_cast<int>(Job::NUM_JOBS); i++) {
     Job job = static_cast<Job>(i);

@@ -38,6 +38,8 @@ class JobLevelsDisplay {
 
     sf::Font _font;
     sf::Text _jobNameText;
+    sf::Text _actualJobQuantityText;
+    sf::Text _idealJobQuantityText;
 
     sf::RectangleShape _barBackgroundRectangle;
     sf::RectangleShape _barRectangle;; 
