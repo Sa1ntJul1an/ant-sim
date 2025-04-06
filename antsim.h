@@ -16,8 +16,6 @@ class AntSim {
 
     ~AntSim();
     
-    void addColony(std::vector<Ant*>);
-
     void randomColony(int);
 
     int getColonySize();

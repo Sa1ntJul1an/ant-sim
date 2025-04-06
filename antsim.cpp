@@ -6,6 +6,7 @@
 #include <SFML/Graphics/Color.hpp>
 #include <SFML/Graphics/RenderWindow.hpp>
 #include <SFML/System/Vector2.hpp>
+#include <algorithm>
 #include <cmath>
 #include <math.h>
 #include <map>
@@ -36,11 +37,6 @@ AntSim::~AntSim() {
     delete ant;
   }
 }
-
-/*void AntSim::addColony(std::vector<Ant*> ants) {*/
-/*  _ants = ants;*/
-/*  _population = _ants.size();*/
-/*}*/
 
 void AntSim::randomColony(int populationSize) {
   _population = populationSize;
@@ -156,8 +152,12 @@ void AntSim::update() {
   for (Ant* ant : _allAnts) {
     // run function for each ant to evaluate how many of each job it has encountered and switch accordingly
     ant->evaluateEncountersAndSwitch();
-
+   
+    // get previous position of ant, move it, and store it in grid
+    std::pair<float, float> antPreviousPosition = ant->getPosition();
     ant->move(_maxMoveDist, _spaceDimensions);
+    _storeAnt(ant, antPreviousPosition);
+
     antsWithJob[ant->getJob()]++;
   }
 
