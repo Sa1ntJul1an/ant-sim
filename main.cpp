@@ -15,10 +15,12 @@ const int WIDTH = 1900;
 const int HEIGHT = 1000;
 
 const int JOBBARWINDOW_HEIGHT = 600;
-const int JOBBARWINDOW_WIDTH = 400;
+const int JOBBARWINDOW_WIDTH = 500;
 
-const float ANT_INTERACTION_DISTANCE = 3.0;
-const int ANT_ENCOUNTER_BUFFER_SIZE = 50;
+const float ANT_INTERACTION_DISTANCE = 4.0;
+const int ANT_ENCOUNTER_BUFFER_SIZE = 30;
+
+const float GRID_CELL_SPACING = ANT_INTERACTION_DISTANCE;
 
 int main(){
 
@@ -71,7 +73,7 @@ int main(){
   };
 
   pair<int, int> dims = {WIDTH, HEIGHT};
-  AntSim antSim = AntSim(ideaJobProportions, ANT_ENCOUNTER_BUFFER_SIZE, ANT_INTERACTION_DISTANCE, jobColors, dims);
+  AntSim antSim = AntSim(ideaJobProportions, ANT_ENCOUNTER_BUFFER_SIZE, ANT_INTERACTION_DISTANCE, GRID_CELL_SPACING, jobColors, dims);
   antSim.randomColony(10000);
 
   int colony_size = antSim.getColonySize();
@@ -95,7 +97,7 @@ int main(){
     antSim.drawSim(renderWindow);
     // =========================================================
 
-    jobLevelsDisplay.drawDisplay(jobBarWindow, antSim.getActualJobProportions()); 
+    jobLevelsDisplay.drawDisplay(jobBarWindow, antSim.getColonySize(), antSim.getActualJobQuantities()); 
 
     // KEYBOARD EVENTS =========================================
     if (Keyboard::isKeyPressed(Keyboard::Space) && !spacebar_held){   // space to pause / unpause

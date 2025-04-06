@@ -15,7 +15,7 @@ class JobLevelsDisplay {
   public: 
     JobLevelsDisplay(int, std::map<Job, float>, std::map<Job, sf::Color>, int, int, sf::Font&);
 
-    void drawDisplay(sf::RenderWindow&, std::map<Job, float>);
+    void drawDisplay(sf::RenderWindow&, int, std::map<Job, int>);
 
   private:
     const float _barVerticalPadding = 45.0;
@@ -38,6 +38,8 @@ class JobLevelsDisplay {
 
     sf::Font _font;
     sf::Text _jobNameText;
+    sf::Text _actualJobQuantityText;
+    sf::Text _idealJobQuantityText;
 
     sf::RectangleShape _barBackgroundRectangle;
     sf::RectangleShape _barRectangle;; 
