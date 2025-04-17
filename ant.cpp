@@ -98,6 +98,19 @@ void Ant::evaluateEncountersAndSwitch() {
   for (Job job : _encounteredJobs) {                      // tally up number of each job encountered
     jobCounts[job] ++;
   }
+  
+  for (int i = 0; i < static_cast<int>(Job::NUM_JOBS); i++) {   // we need to add zero value for all jobs not seen at all, otherwise each ant will have no knowledge of them 
+    bool jobFound = false;
+    for (std::pair<Job, float> jobCount : jobCounts) {
+      if (jobCount.first == static_cast<Job>(i)) {
+        jobFound = true;
+        break;
+      }
+    }
+    if (!jobFound) {
+      jobCounts[static_cast<Job>(i)] = 0;
+    }
+  }
 
   std::map<Job, float> encounteredProportions;
   for (std::pair<Job, int> jobCountPair : jobCounts) {
