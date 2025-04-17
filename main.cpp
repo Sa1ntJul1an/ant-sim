@@ -4,6 +4,7 @@
 #include <SFML/Window/Keyboard.hpp>
 #include <iostream>
 #include <random>
+#include <string>
 
 #include "antsim.h"
 #include "jobs.h"
@@ -19,7 +20,7 @@ const int HEIGHT = 1000;
 const int JOBBARWINDOW_HEIGHT = 600;
 const int JOBBARWINDOW_WIDTH = 500;
 
-const float ANT_INTERACTION_DISTANCE = 3.0;
+const float ANT_INTERACTION_DISTANCE = 2.0;
 const int ANT_ENCOUNTER_BUFFER_SIZE = 30;
 
 const float GRID_CELL_SPACING = ANT_INTERACTION_DISTANCE;
@@ -36,10 +37,65 @@ pair<float, float> polarToCartesian(float radius, float angleDeg) {
   return {x, y};
 }
 
+bool is_digit(const string& str) {
+  for (char ch : str) {
+    int v = ch;
+    if (!(ch >= 48 && ch <= 57)) {
+      return false;
+    }
+  }
+  return true;
+}
 
 int main(){
 
-  Vector2i mousePosition;
+  const map<Job, Color> jobColors = {
+    {Job::Guard, Color::Red},
+    {Job::Scout, Color::Yellow},
+    {Job::Tunneler, Color::Cyan},
+    {Job::Gatherer, Color::Green},
+    {Job::Caretaker, Color::Magenta}
+  };
+
+  const map<Job, float> ideaJobProportions = {
+    {Job::Gatherer, 0.4},
+    {Job::Tunneler, 0.1},
+    {Job::Scout, 0.05},
+    {Job::Caretaker, 0.25},
+    {Job::Guard, 0.2}
+  };
+
+  pair<int, int> dims = {WIDTH, HEIGHT};
+  AntSim antSim = AntSim(ideaJobProportions, ANT_ENCOUNTER_BUFFER_SIZE, ANT_INTERACTION_DISTANCE, GRID_CELL_SPACING, jobColors, dims);
+
+  cout << "Welcome to ant simulator.  Would you like to start with a random colony, or spawn your own ants?\n";
+  cout << "1 - random colony\n2 - manually spawn colony\n";
+
+  bool manual_spawning = false;
+
+  int userChoice;
+  string userInput;
+  cin >> userInput;
+  while (!is_digit(userInput)) {
+    cout << "Please enter a number to choose.\n";
+    cin.clear(); // Clear error flags
+    cin.ignore(numeric_limits<streamsize>::max(), '\n'); // Discard invalid input
+    cin >> userInput;
+  }
+
+  userChoice = stoi(userInput);
+  
+  if (userChoice < 1 || userChoice > 2) {
+    cout << "Invalid input. Spawning random colony.\n";
+    userChoice = 1;
+  }
+
+  if (userChoice == 1) {
+    cout << "Spawning random ant colony. Population size: 10,000 ants.\n";
+    antSim.randomColony(10000);
+  } else {
+    manual_spawning = true;
+  }
 
   // RENDER WINDOWS
   // =========================================================
@@ -49,6 +105,8 @@ int main(){
   RenderWindow jobBarWindow(VideoMode(JOBBARWINDOW_WIDTH, JOBBARWINDOW_HEIGHT), "Job Levels");
   jobBarWindow.setFramerateLimit(60);
   // =========================================================
+
+  Vector2i mousePosition;
 
   Event renderWindowEvent;
   Event jobBarWindowEvent;
@@ -71,33 +129,13 @@ int main(){
 
   bool sim_running = false;
 
-  const map<Job, Color> jobColors = {
-    {Job::Guard, Color::Red},
-    {Job::Scout, Color::Yellow},
-    {Job::Tunneler, Color::Cyan},
-    {Job::Gatherer, Color::Green},
-    {Job::Caretaker, Color::Magenta}
-  };
-
-  const map<Job, float> ideaJobProportions = {
-    {Job::Gatherer, 0.4},
-    {Job::Tunneler, 0.1},
-    {Job::Scout, 0.05},
-    {Job::Caretaker, 0.25},
-    {Job::Guard, 0.2}
-  };
-
-  pair<int, int> dims = {WIDTH, HEIGHT};
-  AntSim antSim = AntSim(ideaJobProportions, ANT_ENCOUNTER_BUFFER_SIZE, ANT_INTERACTION_DISTANCE, GRID_CELL_SPACING, jobColors, dims);
-  /*antSim.randomColony(10000);*/
-
   std::random_device rd;
   std::mt19937 gen(rd());
 
   std::uniform_real_distribution<float> angleDist(0.0f, 360.0f);
   std::uniform_real_distribution<float> radiusDist(0.0f, ANT_SPAWNING_RADIUS);
 
-  Job antJob = Job::Guard;
+  Job spawningJob = Job::Guard;
 
   int colony_size = antSim.getColonySize();
 
@@ -123,7 +161,7 @@ int main(){
     jobLevelsDisplay.drawDisplay(jobBarWindow, antSim.getColonySize(), antSim.getActualJobQuantities()); 
 
     // MOUSE INTERACTION ======================================
-    if (Mouse::isButtonPressed(Mouse::Left)) {
+    if (Mouse::isButtonPressed(Mouse::Left) && renderWindow.hasFocus() && manual_spawning) {
       if (!sim_running) {
         // spawn ants 
         float angleDeg = angleDist(gen);
@@ -131,8 +169,8 @@ int main(){
 
         std::pair<float, float> cartesianCoords = polarToCartesian(radius, angleDeg);
         
-        Ant* ant = new Ant(antJob, ANT_ENCOUNTER_BUFFER_SIZE, ideaJobProportions);
-        ant->setJob(antJob);
+        Ant* ant = new Ant(spawningJob, ANT_ENCOUNTER_BUFFER_SIZE, ideaJobProportions);
+        ant->setJob(spawningJob);
         ant->setPosition({mousePosition.x + cartesianCoords.first, mousePosition.y + cartesianCoords.second});
       
         antSim.addAnt(ant);
