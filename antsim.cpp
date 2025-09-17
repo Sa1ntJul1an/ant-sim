@@ -4,12 +4,14 @@
 #include "jobs.h"
 
 #include <SFML/Graphics/Color.hpp>
+#include <SFML/Graphics/Font.hpp>
 #include <SFML/Graphics/RenderWindow.hpp>
 #include <SFML/System/Vector2.hpp>
 #include <algorithm>
 #include <cmath>
 #include <math.h>
 #include <map>
+#include <string>
 #include <utility>
 #include <vector>
 #include <random>
@@ -26,6 +28,8 @@ AntSim::AntSim(std::map<Job, float> idealJobProportions, int antEncounterBufferS
   _gridCellSize = gridCellSize;
   _gridCellsX = _spaceDimensions.first / _gridCellSize;
   _gridCellsY = _spaceDimensions.second / _gridCellSize;
+
+  _spawningJobText.setCharacterSize(_spawningJobTextSize);
 
   _jobColors = jobColors;
 
@@ -212,7 +216,17 @@ void AntSim::update(sf::RenderWindow& renderWindow) {
   }
 }
 
-void AntSim::drawSim(sf::RenderWindow& renderWindow) {
+void AntSim::drawSim(sf::RenderWindow& renderWindow, bool displaySpawningJob, Job spawningJob, sf::Font& font) {
+  if (displaySpawningJob) {
+    _spawningJobText.setFont(font);
+    std::string jobName = getJobName(spawningJob);
+    std::string spawningJobTextString = "Spawning " + jobName;
+    sf::Color textColor = _jobColors[spawningJob];
+    _spawningJobText.setString(spawningJobTextString);
+    _spawningJobText.setFillColor(textColor);
+    _spawningJobText.setPosition(sf::Vector2f(static_cast<float>(_spawningJobTextSize) / 2.0, _spaceDimensions.second - static_cast<float>(_spawningJobTextSize) * 2.0));
+    renderWindow.draw(_spawningJobText);
+  }
   for (Ant* ant : _allAnts) {
     std::pair<float, float> antPosition = ant->getPosition();
     Job job = ant->getJob();

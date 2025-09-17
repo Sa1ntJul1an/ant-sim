@@ -155,9 +155,8 @@ int main(){
 
       iteration ++;
       iterationText.setString("Iteration: " + to_string(iteration));
-    } else {
-      antSim.drawSim(renderWindow);
     }
+    antSim.drawSim(renderWindow, (manual_spawning & !sim_running), spawningJob, font);
     // =========================================================
 
     jobLevelsDisplay.drawDisplay(jobBarWindow, antSim.getColonySize(), antSim.getActualJobQuantities(), manual_spawning, spawningJob); 

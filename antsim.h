@@ -6,7 +6,9 @@
 
 #include <SFML/Graphics/CircleShape.hpp>
 #include <SFML/Graphics/Color.hpp>
+#include <SFML/Graphics/Font.hpp>
 #include <SFML/Graphics/RenderWindow.hpp>
+#include <SFML/Graphics/Text.hpp>
 #include <map>
 #include <vector>
 
@@ -28,7 +30,7 @@ class AntSim {
 
     void update(sf::RenderWindow&);
 
-    void drawSim(sf::RenderWindow&);
+    void drawSim(sf::RenderWindow&, bool, Job, sf::Font&);
 
   private:
     void _moveAnts();
@@ -52,6 +54,8 @@ class AntSim {
     int _gridCellsY;
 
     sf::CircleShape _antCircle;
+    sf::Text _spawningJobText;
+    const int _spawningJobTextSize = 100;
 
     std::vector<Ant*> _allAnts;
     std::map<std::pair<int, int>, std::vector<Ant*>> _partitionedAnts;
