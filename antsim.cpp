@@ -221,7 +221,7 @@ void AntSim::drawSim(sf::RenderWindow& renderWindow, bool displaySpawningJob, Jo
     _spawningJobText.setFont(font);
     std::string jobName = getJobName(spawningJob);
     std::string spawningJobTextString = "Spawning " + jobName;
-    sf::Color textColor = _jobColors[spawningJob];
+    sf::Color textColor = sf::Color(_jobColors[spawningJob].r, _jobColors[spawningJob].g, _jobColors[spawningJob].b, 150);
     _spawningJobText.setString(spawningJobTextString);
     _spawningJobText.setFillColor(textColor);
     _spawningJobText.setPosition(sf::Vector2f(static_cast<float>(_spawningJobTextSize) / 2.0, _spaceDimensions.second - static_cast<float>(_spawningJobTextSize) * 2.0));
