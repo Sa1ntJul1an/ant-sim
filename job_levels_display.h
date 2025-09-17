@@ -6,6 +6,7 @@
 #include <SFML/Graphics/RectangleShape.hpp>
 #include <SFML/Graphics/RenderWindow.hpp>
 #include <SFML/Graphics/Text.hpp>
+#include <SFML/System/Vector2.hpp>
 #include <map>
 
 #include "jobs.h"
@@ -15,7 +16,9 @@ class JobLevelsDisplay {
   public: 
     JobLevelsDisplay(int, std::map<Job, float>, std::map<Job, sf::Color>, int, int, sf::Font&);
 
-    void drawDisplay(sf::RenderWindow&, int, std::map<Job, int>);
+    Job getJob(sf::Vector2i);
+
+    void drawDisplay(sf::RenderWindow&, int, std::map<Job, int>, bool, Job);
 
   private:
     const float _barVerticalPadding = 45.0;
@@ -27,8 +30,11 @@ class JobLevelsDisplay {
     float _idealLevelRectangleWidth = _barRectangleWidth + 20.0;
 
     const sf::Color _barBackgroundColor = sf::Color(70, 70, 70);
+    const sf::Color _chosenJobBackgroundColor = sf::Color(130, 130, 130);
 
     float _windowWidth, _windowHeight;
+
+    float _sectionWidth;
 
     int _numJobs;
 

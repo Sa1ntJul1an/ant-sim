@@ -59,6 +59,22 @@ void AntSim::addAnt(Ant* newAnt) {
   _allAnts.push_back(newAnt);
 }
 
+void AntSim::removeAnts(std::pair<float, float> coords, float removalRadius) {
+  int gridIndex_x = static_cast<int>(coords.first / _gridCellSize);
+  int gridIndex_y = static_cast<int>(coords.second / _gridCellSize);
+
+  for (int x_offset = 0; x_offset <= 1; x_offset++) {
+    for (int y_offset = 0; y_offset <= 1; y_offset++) {
+      std::pair<int, int> gridKey = {gridIndex_x + x_offset, gridIndex_y + y_offset};
+      for (Ant* ant : _partitionedAnts[gridKey]) {
+        if (_euclideanDistance(ant->getPosition(), coords) < removalRadius) {
+           
+        } 
+      }
+    }
+  }
+}
+
 void AntSim::randomColony(int populationSize) {
   _population = populationSize;
 
@@ -166,18 +182,26 @@ std::map<Job, int> AntSim::getActualJobQuantities() {
   return _actualJobQuantities; 
 }
 
-void AntSim::update() {
+void AntSim::update(sf::RenderWindow& renderWindow) {
   _evaluateAntEncounters();
   
   std::map<Job, int> antsWithJob;
   for (Ant* ant : _allAnts) {
     // run function for each ant to evaluate how many of each job it has encountered and switch accordingly
     ant->evaluateEncountersAndSwitch();
-   
+    
     // get previous position of ant, move it, and store it in grid
     std::pair<float, float> antPreviousPosition = ant->getPosition();
     ant->move(_maxMoveDist, _spaceDimensions);
     _storeAnt(ant, antPreviousPosition);
+    
+    std::pair<float, float> antPosition = ant->getPosition();
+    Job job = ant->getJob();
+
+    _antCircle.setPosition(sf::Vector2f(antPosition.first - _antSize, antPosition.second - _antSize));
+    _antCircle.setFillColor(_jobColors[job]);
+
+    renderWindow.draw(_antCircle);
 
     antsWithJob[ant->getJob()]++;
   }
@@ -225,14 +249,11 @@ float AntSim::_distanceBetweenAnts(Ant* ant1, Ant* ant2) {
   if (ant1 == ant2) {
     return 0.0f;
   }
+  return _euclideanDistance(ant1->getPosition(), ant2->getPosition());
+}
 
-  std::pair<float, float> ant1_pos = ant1->getPosition();
-  std::pair<float, float> ant2_pos = ant2->getPosition();
-
-  float delta_x = abs(ant1_pos.first - ant2_pos.first);
-  float delta_y = abs(ant1_pos.second - ant2_pos.second);
-  
-  return sqrt(pow(delta_x, 2) + pow(delta_y, 2));
+float AntSim::_euclideanDistance(std::pair<float, float> pos1, std::pair<float, float> pos2) {
+  return sqrt(pow(abs(pos1.first - pos2.first), 2) + pow(abs(pos1.second - pos2.second), 2));
 }
 
 void AntSim::_storeAnt(Ant* ant, std::pair<float, float> previous_position) {   // used to store an ant that has moved (has a previous position)
@@ -253,15 +274,7 @@ void AntSim::_storeAnt(Ant* ant, std::pair<float, float> previous_position) {   
     // grid key for ants previous position to delete it from previous vector of ants
     grid_key = {prev_grid_location_x, prev_grid_location_y};
 
-    // we need to ensure the last ant is the one we want to delete so that we can easily remove it very efficiently
-    if (_partitionedAnts[grid_key].back() != ant) {
-      for (auto it = _partitionedAnts[grid_key].begin(); it != _partitionedAnts[grid_key].end(); ++it) {
-        if (*it != nullptr && *it == ant) {
-          std::swap(*it, _partitionedAnts[grid_key].back());
-        }
-      }
-    }
-    _partitionedAnts[grid_key].pop_back();
+    _removeAnt(ant, grid_key);
   }
 }
 
@@ -296,6 +309,18 @@ std::vector<std::vector<Ant*>> AntSim::_getSurroundingAnts(Ant* ant) {
     }
   }
   return ants;
+}
+
+void AntSim::_removeAnt(Ant* ant, std::pair<int, int> grid_key) {
+  // we need to ensure the last ant is the one we want to delete so that we can easily remove it very efficiently
+  if (_partitionedAnts[grid_key].back() != ant) {
+    for (auto it = _partitionedAnts[grid_key].begin(); it != _partitionedAnts[grid_key].end(); ++it) {
+      if (*it != nullptr && *it == ant) {
+        std::swap(*it, _partitionedAnts[grid_key].back());
+      }
+    }
+  }
+  _partitionedAnts[grid_key].pop_back();
 }
 
 

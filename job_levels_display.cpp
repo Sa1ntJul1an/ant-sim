@@ -18,6 +18,8 @@ JobLevelsDisplay::JobLevelsDisplay(int colonySize, std::map<Job, float> idealJob
   _windowHeight = static_cast<float>(windowHeight);
 
   _numJobs = static_cast<int>(Job::NUM_JOBS);
+  
+  _sectionWidth = _windowWidth / static_cast<float>(_numJobs);
 
   _jobNameText.setFont(_font);
   _jobNameText.setCharacterSize(12);
@@ -39,9 +41,22 @@ JobLevelsDisplay::JobLevelsDisplay(int colonySize, std::map<Job, float> idealJob
   _barRectangle.setSize(sf::Vector2f(_barRectangleWidth, _windowHeight - _barVerticalPadding)); 
 }
 
-void JobLevelsDisplay::drawDisplay(sf::RenderWindow& window, int colonySize, std::map<Job, int> actualJobQuantites) {
-  float sectionWidth = _windowWidth / static_cast<float>(_numJobs);
+Job JobLevelsDisplay::getJob(sf::Vector2i mousePosition) {
+  Job chosenJob = Job::Guard;
+  for (int i = 0; i < _numJobs; i++) {
+    Job job = static_cast<Job>(i);
+    
+    float x_center = 0.5 * _sectionWidth + _sectionWidth * static_cast<float>(i);
 
+    if (static_cast<float>(mousePosition.x) - x_center < _sectionWidth / 2.0) {
+      chosenJob = job;  
+      break;
+    }
+  }
+  return chosenJob;
+}
+
+void JobLevelsDisplay::drawDisplay(sf::RenderWindow& window, int colonySize, std::map<Job, int> actualJobQuantites, bool showChosenJob, Job chosenJob) {
   for (int i = 0; i < _numJobs; i++) {
     Job job = static_cast<Job>(i);
     std::string jobName = getJobName(job);
@@ -49,7 +64,7 @@ void JobLevelsDisplay::drawDisplay(sf::RenderWindow& window, int colonySize, std
     float idealJobLevel = _idealJobLevels[job];
     float actualJobLevel = static_cast<float>(actualJobQuantites[job]) / colonySize;
     
-    float x_center = 0.5 * sectionWidth + sectionWidth * static_cast<float>(i);
+    float x_center = 0.5 * _sectionWidth + _sectionWidth * static_cast<float>(i);
     
     float ideal_level_y = _barVerticalPadding + _barBackgroundRectangle.getLocalBounds().height + _barBackgroundRectangle.getLocalBounds().top - idealJobLevel * _barBackgroundRectangle.getLocalBounds().height;
     _idealLevelRectangle.setPosition(sf::Vector2f(x_center - _idealLevelRectangleWidth / 2.0, ideal_level_y));
@@ -78,6 +93,12 @@ void JobLevelsDisplay::drawDisplay(sf::RenderWindow& window, int colonySize, std
     _jobNameText.setString(jobName);
     _jobNameText.setOrigin(_jobNameText.getLocalBounds().width / 2.0, 0.0);
     _jobNameText.setPosition(sf::Vector2f(x_center, _barBackgroundRectangle.getSize().y + _barVerticalPadding + 10.0));
+    
+    if (showChosenJob && job == chosenJob) {
+      _barBackgroundRectangle.setFillColor(_chosenJobBackgroundColor); 
+    } else {
+      _barBackgroundRectangle.setFillColor(_barBackgroundColor);
+    }
 
     window.draw(_jobNameText);
     window.draw(_idealLevelRectangle);

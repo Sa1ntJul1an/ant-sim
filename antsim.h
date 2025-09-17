@@ -16,7 +16,9 @@ class AntSim {
 
     ~AntSim();
     
-    void addAnt(Ant*);   
+    void addAnt(Ant*);
+
+    void removeAnts(std::pair<float, float>, float);
   
     void randomColony(int);
 
@@ -24,7 +26,7 @@ class AntSim {
 
     std::map<Job, int> getActualJobQuantities();
 
-    void update();
+    void update(sf::RenderWindow&);
 
     void drawSim(sf::RenderWindow&);
 
@@ -32,8 +34,10 @@ class AntSim {
     void _moveAnts();
     void _evaluateAntEncounters();
     float _distanceBetweenAnts(Ant*, Ant*);
+    float _euclideanDistance(std::pair<float, float>, std::pair<float, float>);
     void _storeAnt(Ant*, std::pair<float, float>);
     void _storeAnt(Ant*);
+    void _removeAnt(Ant*, std::pair<int, int>);
     std::vector<std::vector<Ant*>> _getSurroundingAnts(Ant*);
 
     std::pair<int, int> _spaceDimensions;

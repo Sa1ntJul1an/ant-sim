@@ -27,6 +27,7 @@ const float GRID_CELL_SPACING = ANT_INTERACTION_DISTANCE;
 
 const float ANT_SPAWNING_RADIUS = 35.0;
 
+const int NUM_ANTS_SPAWNED = 5;
 
 pair<float, float> polarToCartesian(float radius, float angleDeg) {
   float angleRad = angleDeg * M_PI / 180.0;
@@ -48,6 +49,8 @@ bool is_digit(const string& str) {
 }
 
 int main(){
+
+  int random_population_size = 7000;
 
   const map<Job, Color> jobColors = {
     {Job::Guard, Color::Red},
@@ -71,7 +74,7 @@ int main(){
   cout << "Welcome to ant simulator.  Would you like to start with a random colony, or spawn your own ants?\n";
   cout << "1 - random colony\n2 - manually spawn colony\n";
 
-  bool manual_spawning = false;
+  bool manual_spawning = true;
 
   int userChoice;
   string userInput;
@@ -91,10 +94,11 @@ int main(){
   }
 
   if (userChoice == 1) {
-    cout << "Spawning random ant colony. Population size: 10,000 ants.\n";
-    antSim.randomColony(10000);
+    cout << "Spawning random ant colony...\n";
+    antSim.randomColony(random_population_size);
+    manual_spawning = false;
   } else {
-    manual_spawning = true;
+    cout << "Spawning ants manually...\n";
   }
 
   // RENDER WINDOWS
@@ -145,35 +149,49 @@ int main(){
     renderWindow.clear();
     jobBarWindow.clear(Color(30, 30, 30));
 
-    mousePosition = Mouse::getPosition(renderWindow);
-
     // Ant Sim =================================================
     if (sim_running) {
-      antSim.update(); 
+      antSim.update(renderWindow); 
 
       iteration ++;
       iterationText.setString("Iteration: " + to_string(iteration));
+    } else {
+      antSim.drawSim(renderWindow);
     }
-    
-    antSim.drawSim(renderWindow);
     // =========================================================
 
-    jobLevelsDisplay.drawDisplay(jobBarWindow, antSim.getColonySize(), antSim.getActualJobQuantities()); 
+    jobLevelsDisplay.drawDisplay(jobBarWindow, antSim.getColonySize(), antSim.getActualJobQuantities(), manual_spawning, spawningJob); 
 
     // MOUSE INTERACTION ======================================
-    if (Mouse::isButtonPressed(Mouse::Left) && renderWindow.hasFocus() && manual_spawning) {
+    if (Mouse::isButtonPressed(Mouse::Left) && manual_spawning) {
       if (!sim_running) {
-        // spawn ants 
-        float angleDeg = angleDist(gen);
-        float radius = radiusDist(gen);
+        if (renderWindow.hasFocus()) {
+          mousePosition = Mouse::getPosition(renderWindow);
+          for (int i = 0; i < NUM_ANTS_SPAWNED; i++) {
+            // spawn ants 
+            float angleDeg = angleDist(gen);
+            float radius = radiusDist(gen);
 
-        std::pair<float, float> cartesianCoords = polarToCartesian(radius, angleDeg);
-        
-        Ant* ant = new Ant(spawningJob, ANT_ENCOUNTER_BUFFER_SIZE, ideaJobProportions);
-        ant->setJob(spawningJob);
-        ant->setPosition({mousePosition.x + cartesianCoords.first, mousePosition.y + cartesianCoords.second});
-      
-        antSim.addAnt(ant);
+            std::pair<float, float> cartesianCoords = polarToCartesian(radius, angleDeg);
+            
+            Ant* ant = new Ant(spawningJob, ANT_ENCOUNTER_BUFFER_SIZE, ideaJobProportions);
+            ant->setJob(spawningJob);
+            std::pair<float, float> antPosition = {mousePosition.x + cartesianCoords.first, mousePosition.y + cartesianCoords.second};
+
+            if (antPosition.first > WIDTH || antPosition.first < 0) {
+              continue;
+            }
+            if (antPosition.second > HEIGHT || antPosition.second < 0) {
+              continue;
+            }
+            ant->setPosition({mousePosition.x + cartesianCoords.first, mousePosition.y + cartesianCoords.second});
+          
+            antSim.addAnt(ant);
+          }
+        } else if (jobBarWindow.hasFocus()) {
+          mousePosition = Mouse::getPosition(jobBarWindow);
+          spawningJob = jobLevelsDisplay.getJob(mousePosition);
+        }
       }
     }
     // ========================================================
